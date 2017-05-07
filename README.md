@@ -12,13 +12,13 @@ rm -rf Makefile.common && rm -rf configure
 vi autoconf/configure.ac
 ```
 
-change value of LLVM_SRC_ROOT to $LLVM_SRC
-change value of LLVM_OBJ_ROOT to $LLVM_OBJ
+* change value of LLVM\_SRC\_ROOT to $LLVM\_SRC
+* change value of LLVM\_OBJ\_ROOT to $LLVM\_OBJ
 
 ```
 ./autoconf/AutoRegen.sh
 ```
-input your LLVM_SRC_ROOT and LLVM_OBJ_ROOT following the command line
+input your LLVM\_SRC\_ROOT and LLVM\_OBJ\_ROOT following the command line
 
 ```
 ./configure
