@@ -9,16 +9,16 @@ export LLVM_SRC=<LLVM_SRC_DIR>
 export LLVM_OBJ=<LLVM_OBJ_DIR> (autoconf)
 export PATH=$LLVM_OBJ/Release+Asserts/bin:$PATH
 rm -rf Makefile.common && rm -rf configure
-vi autoconf/configure.ac
 ```
 
+Edit autoconf/configure.ac:
 * change value of LLVM\_SRC\_ROOT to $LLVM\_SRC
 * change value of LLVM\_OBJ\_ROOT to $LLVM\_OBJ
 
 ```
 ./autoconf/AutoRegen.sh
 ```
-input your LLVM\_SRC\_ROOT and LLVM\_OBJ\_ROOT following the command line
+* input your LLVM\_SRC\_ROOT and LLVM\_OBJ\_ROOT following the command line
 
 ```
 ./configure
