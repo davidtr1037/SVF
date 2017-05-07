@@ -17,10 +17,7 @@ Edit autoconf/configure.ac:
 
 ```
 ./autoconf/AutoRegen.sh
-```
-* input your LLVM\_SRC\_ROOT and LLVM\_OBJ\_ROOT following the command line
-
-```
+(input your LLVM\_SRC\_ROOT and LLVM\_OBJ\_ROOT following the command line)
 ./configure
 make CFLAGS=-m32 CXXFLAGS="-m32 -std=gnu++11"
 ```
