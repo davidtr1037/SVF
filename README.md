@@ -2,7 +2,8 @@
 * Forked from https://github.com/unsw-corg/SVF
 * Ported to work with LLVM 3.4
 * Additional changes for the KLEE/Slicing project
-## Build
+
+## Build (Autoconf)
 ```
 git checkout llvm-3.4
 export LLVM_SRC=<LLVM_SRC_DIR>
@@ -20,3 +21,6 @@ Edit autoconf/configure.ac:
 ./configure
 make CFLAGS=-m32 CXXFLAGS="-m32 -std=gnu++11"
 ```
+
+Notes:
+* The build should be moved to CMake
