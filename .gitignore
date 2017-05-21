@@ -5,7 +5,6 @@ html/
 Release+Asserts/
 Debug+Asserts/
 Release/
-autoconf/
 tests/result/
 doxygen/
 .*
