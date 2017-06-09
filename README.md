@@ -3,24 +3,15 @@
 * Ported to work with LLVM 3.4
 * Additional changes for the KLEE/Slicing project
 
-## Build (Autoconf)
+## Build (CMake)
 ```
 git checkout llvm-3.4
-export LLVM_SRC=<LLVM_SRC_DIR>
-export LLVM_OBJ=<LLVM_OBJ_DIR> (autoconf)
-export PATH=$LLVM_OBJ/Release+Asserts/bin:$PATH
-rm -rf Makefile.common && rm -rf configure
+mkdir build
+cmake \
+    -DLLVM_DIR=<LLVM_BUILD_DIR>/share/llvm/cmake/ \
+    -DLLVM_SRC=<LLVM_SRC_DIR> \
+    -DLLVM_OBJ=<LLVM_BUILD_DIR> \
+    -DCMAKE_BUILD_TYPE:STRING=Debug \
+    ..
+make
 ```
-
-Edit autoconf/configure.ac:
-* change value of LLVM\_SRC\_ROOT to $LLVM\_SRC
-* change value of LLVM\_OBJ\_ROOT to $LLVM\_OBJ
-
-```
-./autoconf/AutoRegen.sh
-./configure
-make CFLAGS=-m32 CXXFLAGS="-m32 -std=gnu++11"
-```
-
-Notes:
-* The build should be moved to CMake
