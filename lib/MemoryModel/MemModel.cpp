@@ -235,12 +235,10 @@ bool SymbolTableInfo::computeGepOffset(const llvm::User *V, LocationSet& ls) {
         }
     }
 
-    /* TODO: fix pointer width */
-    APInt offset(32, (uint64_t)(0)); 
+    APInt offset(64, (uint64_t)(0));
     const GEPOperator *gepOp = cast<GEPOperator>(V);
     gepOp->accumulateConstantOffset(*(getDataLayout()), offset);
     ls.accOffset += offset.getZExtValue();
-    //outs() << "SVF: " << ls.offset << " " << ls.accOffset << "\n";
 
     return true;
 }
