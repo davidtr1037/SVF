@@ -235,7 +235,7 @@ bool SymbolTableInfo::computeGepOffset(const llvm::User *V, LocationSet& ls) {
         }
     }
 
-    APInt offset(64, (uint64_t)(0));
+    APInt offset(getDataLayout()->getPointerSizeInBits(), (uint64_t)(0));
     const GEPOperator *gepOp = cast<GEPOperator>(V);
     gepOp->accumulateConstantOffset(*(getDataLayout()), offset);
     ls.accOffset += offset.getZExtValue();
