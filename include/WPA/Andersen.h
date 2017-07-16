@@ -100,7 +100,7 @@ public:
             numOfIteration++;
 
             if(0 == numOfIteration % OnTheFlyIterBudgetForStat) {
-                dumpStat();
+                //dumpStat();
             }
 
             reanalyze = false;
