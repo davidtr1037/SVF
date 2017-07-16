@@ -207,7 +207,7 @@ void PointerAnalysis::dumpStat() {
 void PointerAnalysis::finalize() {
 
     /// Print statistics
-    dumpStat();
+    //dumpStat();
 
     PAG* pag = PAG::getPAG();
     // dump the PAG graph
