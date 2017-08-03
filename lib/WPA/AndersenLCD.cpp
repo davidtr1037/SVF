@@ -44,7 +44,7 @@ void AndersenLCD::processNode(NodeID nodeId) {
 
     numOfIteration++;
     if(0 == numOfIteration % OnTheFlyIterBudgetForStat) {
-        dumpStat();
+        //dumpStat();
     }
 
     ConstraintNode* node = consCG->getConstraintNode(nodeId);
