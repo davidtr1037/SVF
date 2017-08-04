@@ -33,7 +33,7 @@
 #include "Util/BasicTypes.h"
 #include <llvm/ADT/StringMap.h>
 #include <llvm/IR/Function.h>
-#include <llvm/IR/CallSite.h>
+#include <llvm/Support/CallSite.h>
 
 /*
  * ThreadAPI class contains interfaces for pthread programs

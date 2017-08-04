@@ -502,29 +502,29 @@ void PointerAnalysis::validateSuccessTests(const char* fun) {
         if(!checkFun->use_empty())
             outs() << "[" << this->PTAName() << "] Checking " << fun << "\n";
 
-        for (Value::user_iterator i = checkFun->user_begin(), e =
-                    checkFun->user_end(); i != e; ++i)
+        for (Value::use_iterator i = checkFun->use_begin(), e =
+                    checkFun->use_end(); i != e; ++i)
             if (CallInst *call = dyn_cast<CallInst>(*i)) {
                 assert(call->getNumArgOperands() == 2
                        && "arguments should be two pointers!!");
                 Value* V1 = call->getArgOperand(0);
                 Value* V2 = call->getArgOperand(1);
-                AliasResult aliasRes = alias(V1, V2);
+                AliasAnalysis::AliasResult aliasRes = alias(V1, V2);
 
                 bool checkSuccessful = false;
                 if (strcmp(fun, "MAYALIAS") == 0) {
-                    if (aliasRes == MayAlias || aliasRes == MustAlias)
+                    if (aliasRes == AliasAnalysis::MayAlias || aliasRes == AliasAnalysis::MustAlias)
                         checkSuccessful = true;
                 } else if (strcmp(fun, "NOALIAS") == 0) {
-                    if (aliasRes == NoAlias)
+                    if (aliasRes == AliasAnalysis::NoAlias)
                         checkSuccessful = true;
                 } else if (strcmp(fun, "MUSTALIAS") == 0) {
                     // change to must alias when our analysis support it
-                    if (aliasRes == MayAlias || aliasRes == MustAlias)
+                    if (aliasRes == AliasAnalysis::MayAlias || aliasRes == AliasAnalysis::MustAlias)
                         checkSuccessful = true;
                 } else if (strcmp(fun, "PARTIALALIAS") == 0) {
                     // change to partial alias when our analysis support it
-                    if (aliasRes == MayAlias)
+                    if (aliasRes == AliasAnalysis::MayAlias)
                         checkSuccessful = true;
                 } else
                     assert(false && "not supported alias check!!");
@@ -553,23 +553,23 @@ void PointerAnalysis::validateExpectedFailureTests(const char* fun) {
         if(!checkFun->use_empty())
             outs() << "[" << this->PTAName() << "] Checking " << fun << "\n";
 
-        for (Value::user_iterator i = checkFun->user_begin(), e =
-                    checkFun->user_end(); i != e; ++i)
+        for (Value::use_iterator i = checkFun->use_begin(), e =
+                    checkFun->use_end(); i != e; ++i)
             if (CallInst *call = dyn_cast<CallInst>(*i)) {
                 assert(call->getNumArgOperands() == 2
                        && "arguments should be two pointers!!");
                 Value* V1 = call->getArgOperand(0);
                 Value* V2 = call->getArgOperand(1);
-                AliasResult aliasRes = alias(V1, V2);
+                AliasAnalysis::AliasResult aliasRes = alias(V1, V2);
 
                 bool expectedFailure = false;
                 if (strcmp(fun, "EXPECTEDFAIL_MAYALIAS") == 0) {
                     // change to must alias when our analysis support it
-                    if (aliasRes == NoAlias)
+                    if (aliasRes == AliasAnalysis::NoAlias)
                         expectedFailure = true;
                 } else if (strcmp(fun, "EXPECTEDFAIL_NOALIAS") == 0) {
                     // change to partial alias when our analysis support it
-                    if (aliasRes == MayAlias || aliasRes == PartialAlias || aliasRes == MustAlias)
+                    if (aliasRes == AliasAnalysis::MayAlias || aliasRes == AliasAnalysis::PartialAlias || aliasRes == AliasAnalysis::MustAlias)
                         expectedFailure = true;
                 } else
                     assert(false && "not supported alias check!!");
@@ -592,15 +592,15 @@ void PointerAnalysis::validateExpectedFailureTests(const char* fun) {
 /*!
  * Return alias results based on our points-to/alias analysis
  */
-llvm::AliasResult BVDataPTAImpl::alias(const llvm::MemoryLocation &LocA,
-                                       const llvm::MemoryLocation &LocB) {
+llvm::AliasAnalysis::AliasResult BVDataPTAImpl::alias(const llvm::AliasAnalysis::Location &LocA,
+                                       const llvm::AliasAnalysis::Location &LocB) {
     return alias(LocA.Ptr, LocB.Ptr);
 }
 
 /*!
  * Return alias results based on our points-to/alias analysis
  */
-llvm::AliasResult BVDataPTAImpl::alias(const Value* V1,
+llvm::AliasAnalysis::AliasResult BVDataPTAImpl::alias(const Value* V1,
                                        const Value* V2) {
     return alias(pag->getValueNode(V1),pag->getValueNode(V2));
 }
@@ -608,7 +608,7 @@ llvm::AliasResult BVDataPTAImpl::alias(const Value* V1,
 /*!
  * Return alias results based on our points-to/alias analysis
  */
-llvm::AliasResult BVDataPTAImpl::alias(NodeID node1, NodeID node2) {
+llvm::AliasAnalysis::AliasResult BVDataPTAImpl::alias(NodeID node1, NodeID node2) {
 
     PointsTo& p1 = getPts(node1);
     PointsTo& p2 = getPts(node2);
@@ -618,7 +618,7 @@ llvm::AliasResult BVDataPTAImpl::alias(NodeID node1, NodeID node2) {
     expandFIObjs(p2,pts2);
 
     if (containBlackHoleNode(pts1) || containBlackHoleNode(pts2) || pts1.intersects(pts2))
-        return MayAlias;
+        return AliasAnalysis::MayAlias;
     else
-        return NoAlias;
+        return AliasAnalysis::NoAlias;
 }

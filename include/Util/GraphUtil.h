@@ -55,23 +55,23 @@ public:
     static void WriteGraphToFile(llvm::raw_ostream &O,
                                  const std::string &GraphName, const GraphType &GT, bool simple = false) {
         // Filename of the output dot file
-        std::string Filename = GraphName + ".dot";
-        O << "Writing '" << Filename << "'...";
-        std::error_code ErrInfo;
-        tool_output_file F(Filename.c_str(), ErrInfo, sys::fs::F_None);
+        /* std::string Filename = GraphName + ".dot"; */
+        /* O << "Writing '" << Filename << "'..."; */
+        /* std::error_code ErrInfo; */
+        /* tool_output_file F(Filename.c_str(), ErrInfo, sys::fs::F_None); */
 
-        if (!ErrInfo) {
-            // dump the ValueFlowGraph here
-            WriteGraph(F.os(), GT, simple);
-            F.os().close();
-            if (!F.os().has_error()) {
-                O << "\n";
-                F.keep();
-                return;
-            }
-        }
-        O << "  error opening file for writing!\n";
-        F.os().clear_error();
+        /* if (!ErrInfo) { */
+        /*     // dump the ValueFlowGraph here */
+        /*     WriteGraph(F.os(), GT, simple); */
+        /*     F.os().close(); */
+        /*     if (!F.os().has_error()) { */
+        /*         O << "\n"; */
+        /*         F.keep(); */
+        /*         return; */
+        /*     } */
+        /* } */
+        /* O << "  error opening file for writing!\n"; */
+        /* F.os().clear_error(); */
     }
 
     /*!

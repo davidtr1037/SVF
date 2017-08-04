@@ -35,11 +35,11 @@
 #include <llvm/IR/InstrTypes.h>	// for TerminatorInst
 #include <llvm/IR/IntrinsicInst.h>	// for intrinsic instruction
 //#include <llvm/Analysis/DebugInfo.h>
-#include <llvm/IR/DebugInfo.h>
+#include <llvm/DebugInfo.h>
 #include <llvm/Support/CommandLine.h>
-#include <llvm/IR/InstIterator.h>	// for inst iteration
+#include <llvm/Support/InstIterator.h>	// for inst iteration
 #include <llvm/Analysis/CFG.h>	// for CFG
-#include <llvm/IR/CFG.h>		// for CFG
+#include <llvm/Support/CFG.h>		// for CFG
 #include "Util/Conditions.h"
 #include <sys/resource.h>		/// increase stack size
 
@@ -150,7 +150,7 @@ bool analysisUtil::isDeadFunction (const llvm::Function * fun) {
         return false;
     if(isProgEntryFunction(fun))
         return false;
-    for (Value::const_user_iterator i = fun->user_begin(), e = fun->user_end(); i != e; ++i) {
+    for (Value::const_use_iterator i = fun->use_begin(), e = fun->use_end(); i != e; ++i) {
         if (isa<CallInst>(*i) || isa<InvokeInst>(*i))
             return false;
     }
@@ -254,16 +254,16 @@ std::string analysisUtil::getSourceLocOfFunction(const llvm::Function *F)
     std::string str;
     raw_string_ostream rawstr(str);
     NamedMDNode* CU_Nodes = F->getParent()->getNamedMetadata("llvm.dbg.cu");
-    if(CU_Nodes) {
-        for (unsigned i = 0, e = CU_Nodes->getNumOperands(); i != e; ++i) {
-            DICompileUnit *CUNode = cast<DICompileUnit>(CU_Nodes->getOperand(i));
-            for (DISubprogram *SP : CUNode->getSubprograms()) {
-                if (SP->describes(F))
-                    rawstr << "in line: " << SP->getLine()
-                           << " file: " << SP->getFilename();
-            }
-        }
-    }
+    // if(CU_Nodes) {
+    //     for (unsigned i = 0, e = CU_Nodes->getNumOperands(); i != e; ++i) {
+    //         DICompileUnit *CUNode = cast<DICompileUnit>(CU_Nodes->getOperand(i));
+    //         for (DISubprogram *SP : CUNode->getSubprograms()) {
+    //             if (SP->describes(F))
+    //                 rawstr << "in line: " << SP->getLine()
+    //                        << " file: " << SP->getFilename();
+    //         }
+    //     }
+    // }
     return rawstr.str();
 }
 
@@ -279,16 +279,16 @@ std::string analysisUtil::getSourceLoc(const Value* val) {
         if (isa<AllocaInst>(inst)) {
             DbgDeclareInst* DDI = llvm::FindAllocaDbgDeclare(const_cast<Instruction*>(inst));
             if (DDI) {
-                DIVariable *DIVar = cast<DIVariable>(DDI->getVariable());
-                rawstr << "ln: " << DIVar->getLine() << " fl: " << DIVar->getFilename();
+                // DIVariable *DIVar = cast<DIVariable>(DDI->getVariable());
+                // rawstr << "ln: " << DIVar->getLine() << " fl: " << DIVar->getFilename();
             }
         }
         else if (MDNode *N = inst->getMetadata("dbg")) { // Here I is an LLVM instruction
-            DILocation* Loc = cast<DILocation>(N);                   // DILocation is in DebugInfo.h
-            unsigned Line = Loc->getLine();
-            StringRef File = Loc->getFilename();
-            //StringRef Dir = Loc.getDirectory();
-            rawstr << "ln: " << Line << " fl: " << File;
+            // DILocation* Loc = cast<DILocation>(N);                   // DILocation is in DebugInfo.h
+            // unsigned Line = Loc->getLine();
+            // StringRef File = Loc->getFilename();
+            // //StringRef Dir = Loc.getDirectory();
+            // rawstr << "ln: " << Line << " fl: " << File;
         }
     }
     else if (const Argument* argument = dyn_cast<Argument>(val)) {
@@ -308,11 +308,11 @@ std::string analysisUtil::getSourceLoc(const Value* val) {
         NamedMDNode* CU_Nodes = gvar->getParent()->getNamedMetadata("llvm.dbg.cu");
         if(CU_Nodes) {
             for (unsigned i = 0, e = CU_Nodes->getNumOperands(); i != e; ++i) {
-                DICompileUnit *CUNode = cast<DICompileUnit>(CU_Nodes->getOperand(i));
-                for (DIGlobalVariable *GV : CUNode->getGlobalVariables()) {
-                    if (gvar == GV->getVariable())
-                        rawstr << "ln: " << GV->getLine() << " fl: " << GV->getFilename();
-                }
+                // DICompileUnit *CUNode = cast<DICompileUnit>(CU_Nodes->getOperand(i));
+                // for (DIGlobalVariable *GV : CUNode->getGlobalVariables()) {
+                //     if (gvar == GV->getVariable())
+                //         rawstr << "ln: " << GV->getLine() << " fl: " << GV->getFilename();
+                // }
             }
         }
     }

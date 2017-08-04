@@ -33,8 +33,8 @@
 #include "MSSA/SVFGStat.h"
 
 #include <llvm/Analysis/DominanceFrontier.h>
-#include <llvm/IR/InstIterator.h>	// for inst iteration
-#include <llvm/IR/CFG.h>		// for CFG
+#include <llvm/Support/InstIterator.h>	// for inst iteration
+#include <llvm/Support/CFG.h>		// for CFG
 #include <llvm/Analysis/CFG.h>	// for CFG
 #include <llvm/Support/raw_ostream.h>	// for output
 #include <llvm/Support/CommandLine.h>
@@ -236,13 +236,13 @@ void MemSSA::insertPHI(const Function& fun) {
         while (!bbs.empty()) {
             const BasicBlock* bb = bbs.back();
             bbs.pop_back();
-            DominanceFrontierBase<BasicBlock>::const_iterator it = df->find(const_cast<BasicBlock*>(bb));
+            DominanceFrontierBase::const_iterator it = df->find(const_cast<BasicBlock*>(bb));
             if(it == df->end()) {
                 wrnMsg("bb not in the dominance frontier map??");
                 continue;
             }
-            const DominanceFrontierBase<BasicBlock>::DomSetType& domSet = it->second;
-            for (DominanceFrontierBase<BasicBlock>::DomSetType::const_iterator bit =
+            const DominanceFrontierBase::DomSetType& domSet = it->second;
+            for (DominanceFrontierBase::DomSetType::const_iterator bit =
                         domSet.begin(); bit != domSet.end(); ++bit) {
                 const BasicBlock* pbb = *bit;
                 // if we never insert this phi node before

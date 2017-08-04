@@ -43,7 +43,11 @@ public:
 
     bool runOnDT(llvm::DominatorTree& dt) {
         releaseMemory();
-        getBase().analyze(dt);
+        //getBase().analyze(dt);
+        /* ported to LLVM 3.4 */
+        this->Roots = dt.getRoots();
+        assert(this->Roots.size() == 1 && "Only one entry block for forward domfronts!");
+        calculate(dt, dt[this->Roots[0]]); 
         return false;
     }
 };

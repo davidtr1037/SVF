@@ -29,7 +29,7 @@
 
 #include "Util/ThreadCallGraph.h"
 #include <llvm/IR/Module.h>
-#include <llvm/IR/InstIterator.h>	// for inst iteration
+#include <llvm/Support/InstIterator.h>	// for inst iteration
 
 using namespace llvm;
 using namespace analysisUtil;

@@ -178,15 +178,15 @@ public:
     virtual void computeDDAPts(NodeID id) {}
 
     /// Interface exposed to users of our pointer analysis, given Location infos
-    virtual llvm::AliasResult alias(const llvm::MemoryLocation &LocA,
-                                    const llvm::MemoryLocation &LocB) = 0;
+    virtual llvm::AliasAnalysis::AliasResult alias(const llvm::AliasAnalysis::Location &LocA,
+                                    const llvm::AliasAnalysis::Location &LocB) = 0;
 
     /// Interface exposed to users of our pointer analysis, given Value infos
-    virtual llvm::AliasResult alias(const llvm::Value* V1,
+    virtual llvm::AliasAnalysis::AliasResult alias(const llvm::Value* V1,
                                     const llvm::Value* V2) = 0;
 
     /// Interface exposed to users of our pointer analysis, given PAGNodeID
-    virtual llvm::AliasResult alias(NodeID node1, NodeID node2) = 0;
+    virtual llvm::AliasAnalysis::AliasResult alias(NodeID node1, NodeID node2) = 0;
 
 protected:
     /// Return all indirect callsites
@@ -427,15 +427,15 @@ private:
 
 public:
     /// Interface expose to users of our pointer analysis, given Location infos
-    virtual llvm::AliasResult alias(const llvm::MemoryLocation  &LocA,
-                                    const llvm::MemoryLocation  &LocB);
+    virtual llvm::AliasAnalysis::AliasResult alias(const llvm::AliasAnalysis::Location  &LocA,
+                                    const llvm::AliasAnalysis::Location  &LocB);
 
     /// Interface expose to users of our pointer analysis, given Value infos
-    virtual llvm::AliasResult alias(const llvm::Value* V1,
+    virtual llvm::AliasAnalysis::AliasResult alias(const llvm::Value* V1,
                                     const llvm::Value* V2);
 
     /// Interface expose to users of our pointer analysis, given PAGNodeID
-    virtual llvm::AliasResult alias(NodeID node1, NodeID node2);
+    virtual llvm::AliasAnalysis::AliasResult alias(NodeID node1, NodeID node2);
 
     /// dump and debug, print out conditional pts
     //@{
@@ -635,17 +635,17 @@ public:
     }
 
     /// Interface expose to users of our pointer analysis, given Location infos
-    virtual inline llvm::AliasResult alias(const llvm::MemoryLocation &LocA,
-                                           const llvm::MemoryLocation  &LocB) {
+    virtual inline llvm::AliasAnalysis::AliasResult alias(const llvm::AliasAnalysis::Location &LocA,
+                                           const llvm::AliasAnalysis::Location  &LocB) {
         return alias(LocA.Ptr, LocB.Ptr);
     }
     /// Interface expose to users of our pointer analysis, given Value infos
-    virtual llvm::AliasResult alias(const llvm::Value* V1, const llvm::Value* V2) {
+    virtual llvm::AliasAnalysis::AliasResult alias(const llvm::Value* V1, const llvm::Value* V2) {
         return  alias(pag->getValueNode(V1),pag->getValueNode(V2));
     }
 
     /// Interface expose to users of our pointer analysis, given Value infos
-    virtual llvm::AliasResult alias(NodeID node1, NodeID node2) {
+    virtual llvm::AliasAnalysis::AliasResult alias(NodeID node1, NodeID node2) {
         PointsTo pts1 = getPts(node1);
         PointsTo pts2 = getPts(node2);
         CPtSet cpts1;
@@ -653,14 +653,14 @@ public:
         CPtSet cpts2;
         expandFIObjs(getCondPointsTo(node2),cpts2);
         if (containBlackHoleNode(pts1) || containBlackHoleNode(pts2))
-            return llvm::MayAlias;
+            return llvm::AliasAnalysis::MayAlias;
         else if(this->getAnalysisTy()==PathS_DDA && contains(cpts1,cpts2) && contains(cpts2,cpts1)) {
-            return llvm::MustAlias;
+            return llvm::AliasAnalysis::MustAlias;
         }
         else if(overlap(cpts1,cpts2))
-            return llvm::MayAlias;
+            return llvm::AliasAnalysis::MayAlias;
         else
-            return llvm::NoAlias;
+            return llvm::AliasAnalysis::NoAlias;
     }
 
     /// Whether two conditions are compatible (to be implemented by child class)
