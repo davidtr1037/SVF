@@ -39,72 +39,72 @@
 /*!
  * Wrapper for SCEV collected from function pass ScalarEvolution
  */
-class PTASCEV {
+/* class PTASCEV { */
 
-public:
-    PTASCEV():scev(NULL), start(NULL), step(NULL),ptr(NULL),inloop(false),tripcount(0) {}
+/* public: */
+/*     PTASCEV():scev(NULL), start(NULL), step(NULL),ptr(NULL),inloop(false),tripcount(0) {} */
 
-    /// Constructor
-    PTASCEV(const llvm::Value* p, const llvm::SCEV* s, llvm::ScalarEvolution* SE): scev(s),start(NULL), step(NULL), ptr(p), inloop(false), tripcount(0) {
-        if(const llvm::SCEVAddRecExpr* ar = llvm::dyn_cast<llvm::SCEVAddRecExpr>(s)) {
-            if (const llvm::SCEVConstant *startExpr = llvm::dyn_cast<llvm::SCEVConstant>(ar->getStart()))
-                start = startExpr->getValue();
-            if (const llvm::SCEVConstant *stepExpr = llvm::dyn_cast<llvm::SCEVConstant>(ar->getStepRecurrence(*SE)))
-                step = stepExpr->getValue();
-            tripcount = SE->getSmallConstantTripCount(const_cast<llvm::Loop*>(ar->getLoop()));
-            inloop = true;
-        }
-    }
-    /// Copy Constructor
-    PTASCEV(const PTASCEV& ptase): scev(ptase.scev), start(ptase.start), step(ptase.step), ptr(ptase.ptr), inloop(ptase.inloop),tripcount(ptase.tripcount) {
+/*     /// Constructor */
+/*     PTASCEV(const llvm::Value* p, const llvm::SCEV* s, llvm::ScalarEvolution* SE): scev(s),start(NULL), step(NULL), ptr(p) { */
+/*         if(const llvm::SCEVAddRecExpr* ar = llvm::dyn_cast<llvm::SCEVAddRecExpr>(s)) { */
+/*             if (const llvm::SCEVConstant *startExpr = llvm::dyn_cast<llvm::SCEVConstant>(ar->getStart())) */
+/*                 start = startExpr->getValue(); */
+/*             if (const llvm::SCEVConstant *stepExpr = llvm::dyn_cast<llvm::SCEVConstant>(ar->getStepRecurrence(*SE))) */
+/*                 step = stepExpr->getValue(); */
+/*             tripcount = SE->getSmallConstantTripCount(const_cast<llvm::Loop*>(ar->getLoop())); */
+/*             inloop = true; */
+/*         } */
+/*     } */
+/*     /// Copy Constructor */
+/*     PTASCEV(const PTASCEV& ptase): scev(ptase.scev), start(ptase.start), step(ptase.step), ptr(ptase.ptr), inloop(ptase.inloop),tripcount(ptase.tripcount) { */
 
-    }
+/*     } */
 
-    /// Destructor
-    virtual ~PTASCEV() {
-    }
+/*     /// Destructor */
+/*     virtual ~PTASCEV() { */
+/*     } */
 
-    const llvm::SCEV *scev;
-    const llvm::Value* start;
-    const llvm::Value* step;
-    const llvm::Value *ptr;
-    bool inloop;
-    unsigned tripcount;
+/*     const llvm::SCEV *scev; */
+/*     const llvm::Value* start; */
+/*     const llvm::Value* step; */
+/*     const llvm::Value *ptr; */
+/*     bool inloop; */
+/*     unsigned tripcount; */
 
-    /// Enable compare operator to avoid duplicated item insertion in map or set
-    /// to be noted that two vectors can also overload operator()
-    inline bool operator< (const PTASCEV& rhs) const {
-        if(start!=rhs.start)
-            return start < rhs.start;
-        else if(step!=rhs.step)
-            return step < rhs.step;
-        else if(ptr!=rhs.ptr)
-            return ptr < rhs.ptr;
-        else if(tripcount!=rhs.tripcount)
-            return tripcount < rhs.tripcount;
-        else
-            return inloop < rhs.inloop;
-    }
-    /// Overloading operator=
-    inline PTASCEV& operator= (const PTASCEV& rhs) {
-        if(*this!=rhs) {
-            start = rhs.start;
-            step = rhs.step;
-            ptr = rhs.ptr;
-            tripcount = rhs.tripcount;
-            inloop = rhs.inloop;
-        }
-        return *this;
-    }
-    /// Overloading operator==
-    inline bool operator== (const PTASCEV& rhs) const {
-        return (start == rhs.start && step == rhs.step && ptr == rhs.ptr && tripcount == rhs.tripcount && inloop == rhs.inloop);
-    }
-    /// Overloading operator==
-    inline bool operator!= (const PTASCEV& rhs) const {
-        return !(*this==rhs);
-    }
-};
+/*     /// Enable compare operator to avoid duplicated item insertion in map or set */
+/*     /// to be noted that two vectors can also overload operator() */
+/*     inline bool operator< (const PTASCEV& rhs) const { */
+/*         if(start!=rhs.start) */
+/*             return start < rhs.start; */
+/*         else if(step!=rhs.step) */
+/*             return step < rhs.step; */
+/*         else if(ptr!=rhs.ptr) */
+/*             return ptr < rhs.ptr; */
+/*         else if(tripcount!=rhs.tripcount) */
+/*             return tripcount < rhs.tripcount; */
+/*         else */
+/*             return inloop < rhs.inloop; */
+/*     } */
+/*     /// Overloading operator= */
+/*     inline PTASCEV& operator= (const PTASCEV& rhs) { */
+/*         if(*this!=rhs) { */
+/*             start = rhs.start; */
+/*             step = rhs.step; */
+/*             ptr = rhs.ptr; */
+/*             tripcount = rhs.tripcount; */
+/*             inloop = rhs.inloop; */
+/*         } */
+/*         return *this; */
+/*     } */
+/*     /// Overloading operator== */
+/*     inline bool operator== (const PTASCEV& rhs) const { */
+/*         return (start == rhs.start && step == rhs.step && ptr == rhs.ptr && tripcount == rhs.tripcount && inloop == rhs.inloop); */
+/*     } */
+/*     /// Overloading operator== */
+/*     inline bool operator!= (const PTASCEV& rhs) const { */
+/*         return !(*this==rhs); */
+/*     } */
+/* }; */
 
 
 /*!
@@ -119,8 +119,8 @@ public:
     bool runOnLI(llvm::Function& fun) {
         releaseMemory();
         llvm::DominatorTree dt;
-        dt.recalculate(fun);
-        analyze(dt);
+	dt.DT->recalculate(fun);
+        getBase().Analyze(*(dt.DT));
         return false;
     }
 };
@@ -189,7 +189,7 @@ public:
         FunToDTMap::iterator it = funToDTMap.find(fun);
         if(it==funToDTMap.end()) {
             llvm::DominatorTree* dt = new llvm::DominatorTree();
-            dt->recalculate(*fun);
+            dt->DT->recalculate(*fun);
             funToDTMap[fun] = dt;
             return dt;
         }
@@ -206,39 +206,39 @@ private:
 /*!
  * Iterated dominance frontier
  */
-class IteratedDominanceFrontier: public llvm::DominanceFrontierBase<llvm::BasicBlock> {
+/* class IteratedDominanceFrontier: public llvm::DominanceFrontierBase<llvm::BasicBlock> { */
 
-private:
-    const llvm::DominanceFrontier *DF;
+/* private: */
+/*     const llvm::DominanceFrontier *DF; */
 
-    void calculate(llvm::BasicBlock *, const llvm::DominanceFrontier &DF);
+/*     void calculate(llvm::BasicBlock *, const llvm::DominanceFrontier &DF); */
 
-public:
-    static char ID;
+/* public: */
+/*     static char ID; */
 
-    IteratedDominanceFrontier() :
-        llvm::DominanceFrontierBase<llvm::BasicBlock>(false), DF(NULL) {
-    }
+/*     IteratedDominanceFrontier() : */
+/*         llvm::DominanceFrontierBase<llvm::BasicBlock>(false), DF(NULL) { */
+/*     } */
 
-    virtual ~IteratedDominanceFrontier() {
-    }
+/*     virtual ~IteratedDominanceFrontier() { */
+/*     } */
 
-    virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const {
-        AU.setPreservesAll();
-        AU.addRequired<llvm::DominanceFrontier>();
-    }
+/*     virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const { */
+/*         AU.setPreservesAll(); */
+/*         AU.addRequired<llvm::DominanceFrontier>(); */
+/*     } */
 
-//	virtual bool runOnFunction(llvm::Function &m) {
-//		Frontiers.clear();
-//		DF = &getAnalysis<llvm::DominanceFrontier>();
-//		return false;
-//	}
+/* //	virtual bool runOnFunction(llvm::Function &m) { */
+/* //		Frontiers.clear(); */
+/* //		DF = &getAnalysis<llvm::DominanceFrontier>(); */
+/* //		return false; */
+/* //	} */
 
-    iterator getIDFSet(llvm::BasicBlock *B) {
-        if (Frontiers.find(B) == Frontiers.end())
-            calculate(B, *DF);
-        return Frontiers.find(B);
-    }
-};
+/*     iterator getIDFSet(llvm::BasicBlock *B) { */
+/*         if (Frontiers.find(B) == Frontiers.end()) */
+/*             calculate(B, *DF); */
+/*         return Frontiers.find(B); */
+/*     } */
+/* }; */
 
 #endif /* DATAFLOWUTIL_H_ */

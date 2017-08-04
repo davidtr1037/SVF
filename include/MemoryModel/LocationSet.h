@@ -37,6 +37,7 @@
 #include "Util/BasicTypes.h"
 
 #include <llvm/IR/Type.h>
+#include <stdbool.h>
 
 /*!
  * Field information of an aggregate object
@@ -49,9 +50,10 @@ private:
     u32_t offset;
     const llvm::Type* elemTy;
     ElemNumStridePairVec elemNumStridePair;
+    bool partOfArray;
 public:
-    FieldInfo(u32_t of, const llvm::Type* ty, ElemNumStridePairVec pa):
-        offset(of), elemTy(ty), elemNumStridePair(pa) {
+    FieldInfo(u32_t of, const llvm::Type* ty, ElemNumStridePairVec pa, bool partOfArray = false):
+        offset(of), elemTy(ty), elemNumStridePair(pa), partOfArray(partOfArray) {
     }
     inline u32_t getFlattenOffset() const {
         return offset;
@@ -67,6 +69,9 @@ public:
     }
     inline ElemNumStridePairVec::const_iterator elemStridePairEnd() const {
         return elemNumStridePair.end();
+    }
+    inline bool isPartOfArray() const {
+        return partOfArray;
     }
 };
 
@@ -88,11 +93,11 @@ public:
     typedef FieldInfo::ElemNumStridePairVec ElemNumStridePairVec;
 
     /// Constructor
-    LocationSet(Size_t o = 0) : offset(o)
+    LocationSet(Size_t o = 0, Size_t accOffset = 0) : offset(o), accOffset(accOffset)
     {}
 
     /// Copy Constructor
-    LocationSet(const LocationSet& ls) : offset(ls.offset)
+    LocationSet(const LocationSet& ls) : offset(ls.offset), accOffset(ls.accOffset)
     {
         const ElemNumStridePairVec& vec = ls.getNumStridePair();
         ElemNumStridePairVec::const_iterator it = vec.begin();
@@ -119,6 +124,7 @@ public:
     inline LocationSet operator+ (const LocationSet& rhs) const {
         LocationSet ls(rhs);
         ls.offset += getOffset();
+	ls.accOffset += getAccOffset();
         ElemNumStridePairVec::const_iterator it = getNumStridePair().begin();
         ElemNumStridePairVec::const_iterator eit = getNumStridePair().end();
         for (; it != eit; ++it)
@@ -128,6 +134,7 @@ public:
     }
     inline const LocationSet& operator= (const LocationSet& rhs) {
         offset = rhs.offset;
+	accOffset = rhs.accOffset;
         numStridePair = rhs.getNumStridePair();
         return *this;
     }
@@ -162,6 +169,9 @@ public:
     }
     inline const ElemNumStridePairVec& getNumStridePair() const {
         return numStridePair;
+    }
+    inline Size_t getAccOffset() const {
+        return accOffset;
     }
     //@}
 
@@ -222,6 +232,7 @@ private:
 
     Size_t offset;	///< offset relative to base
     ElemNumStridePairVec numStridePair;	///< element number and stride pair
+    Size_t accOffset;
 };
 
 

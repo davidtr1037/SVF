@@ -98,8 +98,8 @@ void MRGenerator::collectGlobals() {
     for (PAG::iterator nIter = pag->begin(); nIter != pag->end(); ++nIter) {
         if(ObjPN* obj = dyn_cast<ObjPN>(nIter->second)) {
             if (obj->getMemObj()->isGlobalObj()) {
-                allGlobals.set(nIter->getFirst());
-                allGlobals |= CollectPtsChain(nIter->getFirst());
+                allGlobals.set(nIter->first);
+                allGlobals |= CollectPtsChain(nIter->first);
             }
         }
     }

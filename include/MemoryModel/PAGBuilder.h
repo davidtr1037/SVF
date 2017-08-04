@@ -33,7 +33,7 @@
 #include "MemoryModel/PAG.h"
 #include "Util/ExtAPI.h"
 
-#include <llvm/IR/InstVisitor.h>	// for instruction visitor
+#include <llvm/InstVisitor.h>	// for instruction visitor
 
 
 /*!

@@ -31,7 +31,7 @@
 #include "MemoryModel/LocMemModel.h"
 #include "Util/AnalysisUtil.h"
 
-#include <llvm/IR/GetElementPtrTypeIterator.h>	//for gep iterator
+#include <llvm/Support/GetElementPtrTypeIterator.h>	//for gep iterator
 #include <vector>
 
 using namespace llvm;

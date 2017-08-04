@@ -37,9 +37,9 @@
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Constants.h>				// constants
-#include <llvm/IR/CallSite.h>		// callsite
+#include <llvm/Support/CallSite.h>		// callsite
 #include <llvm/ADT/SparseBitVector.h>	// sparse bit vector
-#include <llvm/IR/Dominators.h>	// dominator tree
+#include <llvm/Analysis/Dominators.h>	// dominator tree
 #include <llvm/Support/Debug.h>		// debug with types
 #include <time.h>
 
