@@ -48,7 +48,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/InstIterator.h"
+#include "llvm/Support/InstIterator.h"
 
 #include "Util/BreakConstantExpr.h"
 
@@ -133,7 +133,7 @@ convertGEP (ConstantExpr * CE, Instruction * InsertPt) {
     //
     // Make the new GEP instruction.
     //
-    return (GetElementPtrInst::Create (nullptr,CE->getOperand(0),
+    return (GetElementPtrInst::Create (CE->getOperand(0),
                                        arrayIdices,
                                        CE->getName(),
                                        InsertPt));

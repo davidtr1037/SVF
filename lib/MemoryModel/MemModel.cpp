@@ -36,10 +36,11 @@
 #include <llvm/Transforms/Utils/UnifyFunctionExitNodes.h>
 #include <llvm/Support/raw_ostream.h>	// for output
 #include <llvm/IR/ValueSymbolTable.h>	// for valueSymbolTable
-#include <llvm/IR/InstIterator.h>	// for inst iteration
-#include <llvm/IR/CallSite.h>		//callsite
+#include <llvm/Support/InstIterator.h>	// for inst iteration
+#include <llvm/Support/CallSite.h>		//callsite
 #include <llvm/Support/CommandLine.h> // for tool output file
-#include <llvm/IR/GetElementPtrTypeIterator.h>	//for gep iterator
+#include <llvm/Support/GetElementPtrTypeIterator.h>	//for gep iterator
+#include <llvm/IR/Operator.h>
 
 using namespace llvm;
 using namespace std;
@@ -113,7 +114,7 @@ void SymbolTableInfo::collectArrayInfo(const ArrayType* ty) {
         FieldInfo::ElemNumStridePairVec pair = elemStInfo->getFlattenFieldInfoVec()[j].getElemNumStridePairVect();
         /// append the additional number
         pair.push_back(std::make_pair(1, 0));
-        FieldInfo field(off, fieldTy, pair);
+        FieldInfo field(off, fieldTy, pair, true);
         stinfo->getFlattenFieldInfoVec().push_back(field);
     }
 }
@@ -141,11 +142,12 @@ void SymbolTableInfo::collectStructInfo(const StructType *sty) {
             StInfo * subStinfo = getStructInfo(et);
             u32_t nfE = subStinfo->getFlattenFieldInfoVec().size();
             //Copy ST's info, whose element 0 is the size of ST itself.
-            for (u32_t j = 0; j < nfE; j++) {
+	    bool isPartOfArray = isa<ArrayType>(et);
+	    for (u32_t j = 0; j < nfE; j++) {
                 u32_t off = nf + subStinfo->getFlattenFieldInfoVec()[j].getFlattenOffset();
                 const Type* elemTy = subStinfo->getFlattenFieldInfoVec()[j].getFlattenElemTy();
                 FieldInfo::ElemNumStridePairVec pair = subStinfo->getFlattenFieldInfoVec()[j].getElemNumStridePairVect();
-                FieldInfo field(off,elemTy,pair);
+                FieldInfo field(off,elemTy,pair,isPartOfArray);
                 stinfo->getFlattenFieldInfoVec().push_back(field);
             }
             nf += nfE;
@@ -236,6 +238,12 @@ bool SymbolTableInfo::computeGepOffset(const llvm::User *V, LocationSet& ls) {
             ls.offset += so[idx];
         }
     }
+
+    APInt offset(getDataLayout()->getPointerSizeInBits(), (uint64_t)(0));
+    const GEPOperator *gepOp = cast<GEPOperator>(V);
+    gepOp->accumulateConstantOffset(*(getDataLayout()), offset);
+    ls.accOffset += offset.getZExtValue();
+    
     return true;
 }
 
@@ -327,7 +335,7 @@ LocationSet SymbolTableInfo::getModulusOffset(ObjTypeInfo* tyInfo, const Locatio
     else
         offset = 0;
 
-    return LocationSet(offset);
+    return LocationSet(offset, ls.getAccOffset());
 }
 
 /*!
@@ -930,14 +938,14 @@ void SymbolTableInfo::handleGlobalCE(const GlobalVariable *G) {
 
     if (isa<StructType>(T)) {
         //A struct may be used in constant GEP expr.
-        for (Value::const_user_iterator it = G->user_begin(), ie = G->user_end();
+        for (Value::const_use_iterator it = G->use_begin(), ie = G->use_end();
                 it != ie; ++it) {
             handleCE(*it);
         }
     } else {
         if (is_array) {
-            for (Value::const_user_iterator it = G->user_begin(), ie =
-                        G->user_end(); it != ie; ++it) {
+            for (Value::const_use_iterator it = G->use_begin(), ie =
+                        G->use_end(); it != ie; ++it) {
                 handleCE(*it);
             }
         }

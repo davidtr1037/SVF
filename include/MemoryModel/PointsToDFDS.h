@@ -33,6 +33,7 @@
 #include "MemoryModel/PointsToDS.h"
 #include <llvm/Support/ToolOutputFile.h>
 #include <llvm/Support/FileSystem.h>		// for file open flag
+#include <system_error>
 
 /*!
  * Data-flow points-to data structure, points-to is maintained for each program point (statement)
@@ -197,42 +198,42 @@ public:
     //@{
     virtual inline void dumpPTData() {
         /// dump points-to of top-level pointers
-        PTData<Key,Data>::dumpPts(this->ptsMap);
-        /// dump points-to of address-taken variables
-        std::error_code ErrInfo;
-        llvm::tool_output_file F("svfg_pts.data", ErrInfo, llvm::sys::fs::F_None);
-        if (!ErrInfo) {
-            llvm::raw_fd_ostream & osm = F.os();
-            NodeBS locs;
-            for(DFPtsMapconstIter it = dfInPtsMap.begin(), eit = dfInPtsMap.end(); it!=eit; ++it)
-                locs.set(it->first);
+        /* PTData<Key,Data>::dumpPts(this->ptsMap); */
+        /* /// dump points-to of address-taken variables */
+        /* std::error_code ErrInfo; */
+        /* llvm::tool_output_file F("svfg_pts.data", ErrInfo, llvm::sys::fs::F_None); */
+        /* if (!ErrInfo) { */
+        /*     llvm::raw_fd_ostream & osm = F.os(); */
+        /*     NodeBS locs; */
+        /*     for(DFPtsMapconstIter it = dfInPtsMap.begin(), eit = dfInPtsMap.end(); it!=eit; ++it) */
+        /*         locs.set(it->first); */
 
-            for(DFPtsMapconstIter it = dfOutPtsMap.begin(), eit = dfOutPtsMap.end(); it!=eit; ++it)
-                locs.set(it->first);
+        /*     for(DFPtsMapconstIter it = dfOutPtsMap.begin(), eit = dfOutPtsMap.end(); it!=eit; ++it) */
+        /*         locs.set(it->first); */
 
-            for (NodeBS::iterator it = locs.begin(), eit = locs.end(); it != eit; it++) {
-                LocID loc = *it;
-                if (this->hasDFInSet(loc)) {
-                    osm << "Loc:" << loc << " IN:{";
-                    this->dumpPts(this->getDFInPtsMap(loc), osm);
-                    osm << "}\n";
-                }
+        /*     for (NodeBS::iterator it = locs.begin(), eit = locs.end(); it != eit; it++) { */
+        /*         LocID loc = *it; */
+        /*         if (this->hasDFInSet(loc)) { */
+        /*             osm << "Loc:" << loc << " IN:{"; */
+        /*             this->dumpPts(this->getDFInPtsMap(loc), osm); */
+        /*             osm << "}\n"; */
+        /*         } */
 
-                if (this->hasDFOutSet(loc)) {
-                    osm << "Loc:" << loc << " OUT:{";
-                    this->dumpPts(this->getDFOutPtsMap(loc), osm);
-                    osm << "}\n";
-                }
-            }
-            F.os().close();
-            if (!F.os().has_error()) {
-                llvm::outs() << "\n";
-                F.keep();
-                return;
-            }
-        }
-        llvm::outs() << "  error opening file for writing!\n";
-        F.os().clear_error();
+        /*         if (this->hasDFOutSet(loc)) { */
+        /*             osm << "Loc:" << loc << " OUT:{"; */
+        /*             this->dumpPts(this->getDFOutPtsMap(loc), osm); */
+        /*             osm << "}\n"; */
+        /*         } */
+        /*     } */
+        /*     F.os().close(); */
+        /*     if (!F.os().has_error()) { */
+        /*         llvm::outs() << "\n"; */
+        /*         F.keep(); */
+        /*         return; */
+        /*     } */
+        /* } */
+        /* llvm::outs() << "  error opening file for writing!\n"; */
+        /* F.os().clear_error(); */
     }
 
     virtual inline void dumpPts(const PtsMap & ptsSet,llvm::raw_ostream & O = llvm::outs()) const {

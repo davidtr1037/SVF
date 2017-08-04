@@ -32,7 +32,7 @@
 
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Function.h>
-#include <llvm/IR/CallSite.h>
+#include <llvm/Support/CallSite.h>
 #include <llvm/IR/Constants.h>
 
 /*

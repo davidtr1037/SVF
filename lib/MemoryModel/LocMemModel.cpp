@@ -31,8 +31,8 @@
 #include "MemoryModel/LocMemModel.h"
 #include "Util/AnalysisUtil.h"
 
-#include <llvm/IR/GetElementPtrTypeIterator.h>	//for gep iterator
-#include "Util/GEPTypeBridgeIterator.h" // include bridge_gep_iterator 
+#include <llvm/Support/GetElementPtrTypeIterator.h>	//for gep iterator
+#include "Util/GEPTypeBridgeIterator.h" // include bridge_gep_iterator
 #include <vector>
 
 using namespace llvm;

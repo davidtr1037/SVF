@@ -31,27 +31,27 @@
 #include "Util/DataFlowUtil.h"
 using namespace llvm;
 
-char IteratedDominanceFrontier::ID = 0;
+//char IteratedDominanceFrontier::ID = 0;
 //static RegisterPass<IteratedDominanceFrontier> IDF("IDF",
 //		"IteratedDominanceFrontier Pass");
 
-void IteratedDominanceFrontier::calculate(llvm::BasicBlock * bb,
-        const llvm::DominanceFrontier &DF) {
+// void IteratedDominanceFrontier::calculate(llvm::BasicBlock * bb,
+//         const llvm::DominanceFrontier &DF) {
 
-    DomSetType worklist;
+//     DomSetType worklist;
 
-    DominanceFrontierBase<llvm::BasicBlock>::const_iterator it = DF.find(bb);
-    assert(it != DF.end());
+//     DominanceFrontierBase<llvm::BasicBlock>::const_iterator it = DF.find(bb);
+//     assert(it != DF.end());
 
-    worklist.insert(it->second.begin(), it->second.end());
-    while (!worklist.empty()) {
-        BasicBlock *item = *worklist.begin();
-        worklist.erase(worklist.begin());
-        if (Frontiers[bb].find(item) == Frontiers[bb].end()) {
-            Frontiers[bb].insert(item);
-            const_iterator parent = DF.find(item);
-            assert(parent != DF.end());
-            worklist.insert(parent->second.begin(), parent->second.end());
-        }
-    }
-}
+//     worklist.insert(it->second.begin(), it->second.end());
+//     while (!worklist.empty()) {
+//         BasicBlock *item = *worklist.begin();
+//         worklist.erase(worklist.begin());
+//         if (Frontiers[bb].find(item) == Frontiers[bb].end()) {
+//             Frontiers[bb].insert(item);
+//             const_iterator parent = DF.find(item);
+//             assert(parent != DF.end());
+//             worklist.insert(parent->second.begin(), parent->second.end());
+//         }
+//     }
+// }

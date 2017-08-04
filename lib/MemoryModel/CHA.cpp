@@ -38,7 +38,7 @@
 #include <stack>
 #include "MemoryModel/CHA.h"
 #include <llvm/Support/CommandLine.h>
-#include <llvm/IR/DebugInfo.h> // for debuginfo like DILocation
+#include <llvm/DebugInfo.h> // for debuginfo like DILocation
 #include <llvm/Support/DOTGraphTraits.h>	// for dot graph traits
 #include "Util/GraphUtil.h"
 #include "Util/AnalysisUtil.h"
@@ -335,18 +335,18 @@ void CHGraph::buildCHGOnBasicBlock(const BasicBlock *B,
 void CHGraph::readInheritanceMetadataFromModule(const Module &M) {
     for (Module::const_named_metadata_iterator mdit = M.named_metadata_begin(),
             mdeit = M.named_metadata_end(); mdit != mdeit; ++mdit) {
-        const NamedMDNode *md = &*mdit;
-        string mdname = md->getName().str();
-        if (mdname.compare(0, 15, "__cxx_bases_of_") != 0)
-            continue;
-        string className = mdname.substr(15);
-        for (NamedMDNode::const_op_iterator opit = md->op_begin(),
-                opeit = md->op_end(); opit != opeit; ++opit) {
-            const MDNode *N = *opit;
-            MDString *mdstr = cast<MDString>(N->getOperand(0));
-            string baseName = mdstr->getString().str();
-            addEdge(className, baseName, CHEdge::INHERITANCE);
-        }
+        // const NamedMDNode *md = &*mdit;
+        // string mdname = md->getName().str();
+        // if (mdname.compare(0, 15, "__cxx_bases_of_") != 0)
+        //     continue;
+        // string className = mdname.substr(15);
+        // for (NamedMDNode::const_op_iterator opit = md->op_begin(),
+        //         opeit = md->op_end(); opit != opeit; ++opit) {
+        //     const MDNode *N = *opit;
+        //     MDString *mdstr = cast<MDString>(N->getOperand(0));
+        //     string baseName = mdstr->getString().str();
+        //     addEdge(className, baseName, CHEdge::INHERITANCE);
+        // }
     }
 }
 
@@ -602,139 +602,137 @@ set<string> CHGraph::getDescendantsName(const string className) const {
 void CHGraph::analyzeVTables(const Module &M) {
     for (Module::const_global_iterator I = M.global_begin(),
             E = M.global_end(); I != E; ++I) {
-        const GlobalValue *globalvalue = dyn_cast<const GlobalValue>(I);
-        if (isValVtbl(globalvalue) && globalvalue->getNumOperands() > 0) {
-            const ConstantStruct *vtblStruct =
-                dyn_cast<ConstantStruct>(globalvalue->getOperand(0));
-            assert(vtblStruct && "Initializer of a vtable not a struct?");
+        // const GlobalValue *globalvalue = dyn_cast<const GlobalValue>(I);
+        // if (isValVtbl(globalvalue)) {
+        //     if (isa<ArrayType>(globalvalue->getValueType()) &&
+        //             globalvalue->getNumOperands() > 0) {
 
-            string vtblClassName = getClassNameFromVtblVal(globalvalue);
-            CHNode *node = getOrCreateNode(vtblClassName);
+        //         string vtblClassName = getClassNameFromVtblVal(globalvalue);
+        //         CHNode *node = getOrCreateNode(vtblClassName);
 
-            node->setVTable(globalvalue);
+        //         node->setVTable(globalvalue);
 
-            for (int ei = 0; ei < vtblStruct->getNumOperands(); ++ei) {
-                const ConstantArray *vtbl =
-                    dyn_cast<ConstantArray>(vtblStruct->getOperand(ei));
-                assert(vtbl && "Element of initializer not an array?");
+        //         const ConstantArray *vtbl =
+        //             dyn_cast<ConstantArray>(globalvalue->getOperand(0));
+        //         assert (vtbl != NULL && "vtable operands not constant array");
 
-                /*
-                 * items in vtables can be classified into 3 categories:
-                 * 1. i8* null
-                 * 2. i8* inttoptr xxx
-                 * 3. i8* bitcast xxx
-                 */
-                bool pure_abstract = true;
-                u32_t i = 0;
-                while (i < vtbl->getNumOperands()) {
-                    vector<const Function*> virtualFunctions;
-                    bool is_virtual = false; // virtual inheritance
-                    int null_ptr_num = 0;
-                    for (; i < vtbl->getNumOperands(); ++i) {
-                        if (isa<ConstantPointerNull>(vtbl->getOperand(i))) {
-                            if (i > 0 && !isa<ConstantPointerNull>(vtbl->getOperand(i-1))) {
-                                const ConstantExpr *ce =
-                                    dyn_cast<ConstantExpr>(vtbl->getOperand(i-1));
-                                if (ce->getOpcode() == Instruction::BitCast) {
-                                    const Value *bitcastValue = ce->getOperand(0);
-                                    string bitcastValueName = bitcastValue->getName().str();
-                                    if (bitcastValueName.compare(0, ztiLabel.size(), ztiLabel) == 0) {
-                                        is_virtual = true;
-                                        null_ptr_num = 1;
-                                        while (i+null_ptr_num < vtbl->getNumOperands()) {
-                                            if (isa<ConstantPointerNull>(vtbl->getOperand(i+null_ptr_num)))
-                                                null_ptr_num++;
-                                            else
-                                                break;
-                                        }
-                                    }
-                                }
-                            }
-                            continue;
-                        }
-                        const ConstantExpr *ce =
-                            dyn_cast<ConstantExpr>(vtbl->getOperand(i));
-                        assert(ce != NULL && "item in vtable not constantexp or null");
-                        u32_t opcode = ce->getOpcode();
-                        assert(opcode == Instruction::IntToPtr ||
-                               opcode == Instruction::BitCast);
-                        assert(ce->getNumOperands() == 1 &&
-                               "inttptr or bitcast operand num not 1");
-                        if (opcode == Instruction::IntToPtr) {
-                            node->setMultiInheritance();
-                            ++i;
-                            break;
-                        }
-                        if (opcode == Instruction::BitCast) {
-                            const Value *bitcastValue = ce->getOperand(0);
-                            string bitcastValueName = bitcastValue->getName().str();
-                            /*
-                             * value in bitcast:
-                             * _ZTIXXX
-                             * Function
-                             * GlobalAlias (alias to other function)
-                             */
-                            assert(isa<Function>(bitcastValue) ||
-                                   isa<GlobalValue>(bitcastValue));
-                            if (const Function *func = dyn_cast<Function>(bitcastValue)) {
-                                node->addVirtualFunction(func);
-                                virtualFunctions.push_back(func);
-                                if (func->getName().str().compare(pureVirtualFunName) == 0) {
-                                    pure_abstract &= true;
-                                } else {
-                                    pure_abstract &= false;
-                                }
-                                struct DemangledName dname = demangle(func->getName().str());
-                                if (dname.className.size() > 0 &&
-                                        vtblClassName.compare(dname.className) != 0) {
-                                    addEdge(vtblClassName, dname.className, CHEdge::INHERITANCE);
-                                }
-                            } else {
-                                if (const GlobalAlias *alias =
-                                            dyn_cast<GlobalAlias>(bitcastValue)) {
-                                    const Constant *aliasValue = alias->getAliasee();
-                                    if (const Function *aliasFunc =
-                                                dyn_cast<Function>(aliasValue)) {
-                                        node->addVirtualFunction(aliasFunc);
-                                        virtualFunctions.push_back(aliasFunc);
-                                    } else if (const ConstantExpr *aliasconst =
-                                                   dyn_cast<ConstantExpr>(aliasValue)) {
-                                        u32_t aliasopcode = aliasconst->getOpcode();
-                                        assert(aliasopcode == Instruction::BitCast &&
-                                               "aliased constantexpr in vtable not a bitcast");
-                                        const Function *aliasbitcastfunc =
-                                            dyn_cast<Function>(aliasconst->getOperand(0));
-                                        assert(aliasbitcastfunc &&
-                                               "aliased bitcast in vtable not a function");
-                                        node->addVirtualFunction(aliasbitcastfunc);
-                                        virtualFunctions.push_back(aliasbitcastfunc);
-                                    } else {
-                                        assert(false && "alias not function or bitcast");
-                                    }
+        //         /*
+        //          * items in vtables can be classified into 3 categories:
+        //          * 1. i8* null
+        //          * 2. i8* inttoptr xxx
+        //          * 3. i8* bitcast xxx
+        //          */
+        //         bool pure_abstract = true;
+        //         u32_t i = 0;
+        //         while (i < vtbl->getNumOperands()) {
+        //             vector<const Function*> virtualFunctions;
+        //             bool is_virtual = false; // virtual inheritance
+        //             int null_ptr_num = 0;
+        //             for (; i < vtbl->getNumOperands(); ++i) {
+        //                 if (isa<ConstantPointerNull>(vtbl->getOperand(i))) {
+        //                     if (i > 0 && !isa<ConstantPointerNull>(vtbl->getOperand(i-1))) {
+        //                         const ConstantExpr *ce =
+        //                             dyn_cast<ConstantExpr>(vtbl->getOperand(i-1));
+        //                         if (ce->getOpcode() == Instruction::BitCast) {
+        //                             const Value *bitcastValue = ce->getOperand(0);
+        //                             string bitcastValueName = bitcastValue->getName().str();
+        //                             if (bitcastValueName.compare(0, ztiLabel.size(), ztiLabel) == 0) {
+        //                                 is_virtual = true;
+        //                                 null_ptr_num = 1;
+        //                                 while (i+null_ptr_num < vtbl->getNumOperands()) {
+        //                                     if (isa<ConstantPointerNull>(vtbl->getOperand(i+null_ptr_num)))
+        //                                         null_ptr_num++;
+        //                                     else
+        //                                         break;
+        //                                 }
+        //                             }
+        //                         }
+        //                     }
+        //                     continue;
+        //                 }
+        //                 const ConstantExpr *ce =
+        //                     dyn_cast<ConstantExpr>(vtbl->getOperand(i));
+        //                 assert(ce != NULL && "item in vtable not constantexp or null");
+        //                 u32_t opcode = ce->getOpcode();
+        //                 assert(opcode == Instruction::IntToPtr ||
+        //                        opcode == Instruction::BitCast);
+        //                 assert(ce->getNumOperands() == 1 &&
+        //                        "inttptr or bitcast operand num not 1");
+        //                 if (opcode == Instruction::IntToPtr) {
+        //                     node->setMultiInheritance();
+        //                     ++i;
+        //                     break;
+        //                 }
+        //                 if (opcode == Instruction::BitCast) {
+        //                     const Value *bitcastValue = ce->getOperand(0);
+        //                     string bitcastValueName = bitcastValue->getName().str();
+        //                     /*
+        //                      * value in bitcast:
+        //                      * _ZTIXXX
+        //                      * Function
+        //                      * GlobalAlias (alias to other function)
+        //                      */
+        //                     assert(isa<Function>(bitcastValue) ||
+        //                            isa<GlobalValue>(bitcastValue));
+        //                     if (const Function *func = dyn_cast<Function>(bitcastValue)) {
+        //                         node->addVirtualFunction(func);
+        //                         virtualFunctions.push_back(func);
+        //                         if (func->getName().str().compare(pureVirtualFunName) == 0) {
+        //                             pure_abstract &= true;
+        //                         } else {
+        //                             pure_abstract &= false;
+        //                         }
+        //                         struct DemangledName dname = demangle(func->getName().str());
+        //                         if (dname.className.size() > 0 &&
+        //                                 vtblClassName.compare(dname.className) != 0) {
+        //                             addEdge(vtblClassName, dname.className, CHEdge::INHERITANCE);
+        //                         }
+        //                     } else {
+        //                         if (const GlobalAlias *alias =
+        //                                     dyn_cast<GlobalAlias>(bitcastValue)) {
+        //                             const Constant *aliasValue = alias->getAliasee();
+        //                             if (const Function *aliasFunc =
+        //                                         dyn_cast<Function>(aliasValue)) {
+        //                                 node->addVirtualFunction(aliasFunc);
+        //                                 virtualFunctions.push_back(aliasFunc);
+        //                             } else if (const ConstantExpr *aliasconst =
+        //                                            dyn_cast<ConstantExpr>(aliasValue)) {
+        //                                 u32_t aliasopcode = aliasconst->getOpcode();
+        //                                 assert(aliasopcode == Instruction::BitCast &&
+        //                                        "aliased constantexpr in vtable not a bitcast");
+        //                                 const Function *aliasbitcastfunc =
+        //                                     dyn_cast<Function>(aliasconst->getOperand(0));
+        //                                 assert(aliasbitcastfunc &&
+        //                                        "aliased bitcast in vtable not a function");
+        //                                 node->addVirtualFunction(aliasbitcastfunc);
+        //                                 virtualFunctions.push_back(aliasbitcastfunc);
+        //                             } else {
+        //                                 assert(false && "alias not function or bitcast");
+        //                             }
 
-                                    pure_abstract &= false;
-                                } else if (bitcastValueName.compare(0, ztiLabel.size(),
-                                                                    ztiLabel) == 0) {
-                                } else {
-                                    assert("what else can be in bitcast of a vtable?");
-                                }
-                            }
-                        }
-                    }
-                    if (is_virtual && virtualFunctions.size() > 0) {
-                        for (int i = 0; i < null_ptr_num; ++i) {
-                            const Function *fun = virtualFunctions[i];
-                            virtualFunctions.insert(virtualFunctions.begin(), fun);
-                        }
-                    }
-                    if (virtualFunctions.size() > 0)
-                        node->addVirtualFunctionVector(virtualFunctions);
-                }
-                if (pure_abstract == true) {
-                    node->setPureAbstract();
-                }
-            }
-        }
+        //                             pure_abstract &= false;
+        //                         } else if (bitcastValueName.compare(0, ztiLabel.size(),
+        //                                                             ztiLabel) == 0) {
+        //                         } else {
+        //                             assert("what else can be in bitcast of a vtable?");
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //             if (is_virtual && virtualFunctions.size() > 0) {
+        //                 for (int i = 0; i < null_ptr_num; ++i) {
+        //                     const Function *fun = virtualFunctions[i];
+        //                     virtualFunctions.insert(virtualFunctions.begin(), fun);
+        //                 }
+        //             }
+        //             if (virtualFunctions.size() > 0)
+        //                 node->addVirtualFunctionVector(virtualFunctions);
+        //         }
+        //         if (pure_abstract == true) {
+        //             node->setPureAbstract();
+        //         }
+        //     }
+        // }
     }
 }
 
@@ -953,41 +951,41 @@ void CHGraph::getCSVFns(CallSite cs, set<Value*> &virtualFunctions) const {
         for (set<const Function*>::const_iterator fit = vfns.begin(),
                 feit = vfns.end(); fit != feit; ++fit) {
             const Function* callee = *fit;
-            if (cs.arg_size() == callee->arg_size() ||
-                    (cs.getFunctionType()->isVarArg() && callee->isVarArg())) {
-                cppUtil::DemangledName dname =
-                    cppUtil::demangle(callee->getName().str());
-                string calleeName = dname.funcName;
-                /*
-                 * if we can't get the function name of a virtual callsite, all virtual
-                 * functions calculated by idx will be valid
-                 */
-                if (funName.size() == 0) {
-                    virtualFunctions.insert(const_cast<Function*>(callee));
-                } else if (funName[0] == '~') {
-                    /*
-                     * if the virtual callsite is calling a destructor, then all
-                     * destructors in the ch will be valid
-                     * class A { virtual ~A(){} };
-                     * class B: public A { virtual ~B(){} };
-                     * int main() {
-                     *   A *a = new B;
-                     *   delete a;  /// the function name of this virtual callsite is ~A()
-                     * }
-                     */
-                    if (calleeName[0] == '~') {
-                        virtualFunctions.insert(const_cast<Function*>(callee));
-                    }
-                } else {
-                    /*
-                     * for other virtual function calls, the function name of the callsite
-                     * and the function name of the target callee should match exactly
-                     */
-                    if (funName.compare(calleeName) == 0) {
-                        virtualFunctions.insert(const_cast<Function*>(callee));
-                    }
-                }
-            }
+            // if (cs.arg_size() == callee->arg_size() ||
+            //         (cs.getFunctionType()->isVarArg() && callee->isVarArg())) {
+            //     cppUtil::DemangledName dname =
+            //         cppUtil::demangle(callee->getName().str());
+            //     string calleeName = dname.funcName;
+            //     /*
+            //      * if we can't get the function name of a virtual callsite, all virtual
+            //      * functions calculated by idx will be valid
+            //      */
+            //     if (funName.size() == 0) {
+            //         virtualFunctions.insert(const_cast<Function*>(callee));
+            //     } else if (funName[0] == '~') {
+            //         /*
+            //          * if the virtual callsite is calling a destructor, then all
+            //          * destructors in the ch will be valid
+            //          * class A { virtual ~A(){} };
+            //          * class B: public A { virtual ~B(){} };
+            //          * int main() {
+            //          *   A *a = new B;
+            //          *   delete a;  /// the function name of this virtual callsite is ~A()
+            //          * }
+            //          */
+            //         if (calleeName[0] == '~') {
+            //             virtualFunctions.insert(const_cast<Function*>(callee));
+            //         }
+            //     } else {
+            //         /*
+            //          * for other virtual function calls, the function name of the callsite
+            //          * and the function name of the target callee should match exactly
+            //          */
+            //         if (funName.compare(calleeName) == 0) {
+            //             virtualFunctions.insert(const_cast<Function*>(callee));
+            //         }
+            //     }
+            // }
         }
     }
 }
@@ -1061,41 +1059,41 @@ void CHGraph::getVFnsFromVtbls(llvm::CallSite cs,
             const Function* callee = *fit;
             //if(cs.arg_size() != callee->arg_size())
             //  continue;
-            if (cs.arg_size() == callee->arg_size() ||
-                    (cs.getFunctionType()->isVarArg() && callee->isVarArg())) {
-                cppUtil::DemangledName dname =
-                    cppUtil::demangle(callee->getName().str());
-                string calleeName = dname.funcName;
-                /*
-                 * if we can't get the function name of a virtual callsite, all virtual
-                 * functions calculated by idx will be valid
-                 */
-                if (funName.size() == 0) {
-                    virtualFunctions.insert(callee);
-                } else if (funName[0] == '~') {
-                    /*
-                     * if the virtual callsite is calling a destructor, then all
-                     * destructors in the ch will be valid
-                     * class A { virtual ~A(){} };
-                     * class B: public A { virtual ~B(){} };
-                     * int main() {
-                     *   A *a = new B;
-                     *   delete a;  /// the function name of this virtual callsite is ~A()
-                     * }
-                     */
-                    if (calleeName[0] == '~') {
-                        virtualFunctions.insert(callee);
-                    }
-                } else {
-                    /*
-                     * for other virtual function calls, the function name of the callsite
-                     * and the function name of the target callee should match exactly
-                     */
-                    if (funName.compare(calleeName) == 0) {
-                        virtualFunctions.insert(callee);
-                    }
-                }
-            }
+            // if (cs.arg_size() == callee->arg_size() ||
+            //         (cs.getFunctionType()->isVarArg() && callee->isVarArg())) {
+            //     cppUtil::DemangledName dname =
+            //         cppUtil::demangle(callee->getName().str());
+            //     string calleeName = dname.funcName;
+            //     /*
+            //      * if we can't get the function name of a virtual callsite, all virtual
+            //      * functions calculated by idx will be valid
+            //      */
+            //     if (funName.size() == 0) {
+            //         virtualFunctions.insert(callee);
+            //     } else if (funName[0] == '~') {
+            //         /*
+            //          * if the virtual callsite is calling a destructor, then all
+            //          * destructors in the ch will be valid
+            //          * class A { virtual ~A(){} };
+            //          * class B: public A { virtual ~B(){} };
+            //          * int main() {
+            //          *   A *a = new B;
+            //          *   delete a;  /// the function name of this virtual callsite is ~A()
+            //          * }
+            //          */
+            //         if (calleeName[0] == '~') {
+            //             virtualFunctions.insert(callee);
+            //         }
+            //     } else {
+            //         /*
+            //          * for other virtual function calls, the function name of the callsite
+            //          * and the function name of the target callee should match exactly
+            //          */
+            //         if (funName.compare(calleeName) == 0) {
+            //             virtualFunctions.insert(callee);
+            //         }
+            //     }
+            // }
         }
     }
 }
