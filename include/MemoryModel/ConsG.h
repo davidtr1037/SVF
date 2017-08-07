@@ -250,6 +250,17 @@ public:
         const MemObj* mem =  pag->getBaseObj(id);
         return mem->isFieldInsensitive();
     }
+    inline void printNode(NodeID id) const {
+      const MemObj *mem = pag->getBaseObj(id);
+      llvm::errs() << "is array? " << mem->isArray() << "-is heap? "
+                   << mem->isHeap() << "-is struct? " << mem->isStruct()
+                   << "-is field insensitive? " << mem->isFieldInsensitive()
+                   << "\n";
+      mem->getRefVal()->dump();
+    }
+    inline const MemObj *getMemObj(NodeID id) const {
+      return pag->getBaseObj(id);
+    }
     inline bool isSingleFieldObj(NodeID id) const {
         const MemObj* mem = pag->getBaseObj(id);
         return (mem->getMaxFieldOffsetLimit() == 1);
