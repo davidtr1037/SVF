@@ -276,11 +276,14 @@ void Andersen::processGepPts(PointsTo& pts, const GepCGEdge* edge)
             /// If a pointer connected by a variant gep edge,
             /// then set this memory object to be field insensitive
             if (isa<VariantGepCGEdge>(edge)) {
-              // XXX: HACK!! basically what I tried to enforce is field (in)sensitivity when needed
-              if (!consCG->isFieldInsensitiveObj(ptd) &&
-                  !consCG->getMemObj(ptd)->isStruct()) {
-                    consCG->setObjFieldInsensitive(ptd);
-                    consCG->addNodeToBeCollapsed(consCG->getBaseObjNode(ptd));
+                // XXX: HACK!! basically what I tried to enforce is field (in)sensitivity when needed
+                if (!consCG->isFieldInsensitiveObj(ptd)) {
+                    const MemObj *mo = consCG->getMemObj(ptd);
+                    /* TODO: check if heap object? */
+                    if (!mo->isStruct()) {
+                        consCG->setObjFieldInsensitive(ptd);
+                        consCG->addNodeToBeCollapsed(consCG->getBaseObjNode(ptd));
+                    }
                 }
                 // add the field-insensitive node into pts.
                 NodeID baseId = consCG->getFIObjNode(ptd);
@@ -296,11 +299,13 @@ void Andersen::processGepPts(PointsTo& pts, const GepCGEdge* edge)
                 tmpDstPts.set(fieldSrcPtdNode);
                 addTypeForGepObjNode(fieldSrcPtdNode, normalGepEdge);
                 // XXX: HACK!! basically what I tried to enforce is field (in)sensitivity when needed
-                if (!consCG->isFieldInsensitiveObj(ptd) &&
-                    !consCG->getMemObj(ptd)->isStruct() &&
-                    !consCG->getMemObj(ptd)->isHeap()) {
-                  consCG->setObjFieldInsensitive(ptd);
-                  consCG->addNodeToBeCollapsed(consCG->getBaseObjNode(ptd));
+                if (!consCG->isFieldInsensitiveObj(ptd)) {
+                    const MemObj *mo = consCG->getMemObj(ptd);
+                    /* TODO: why do we check here if it is a heap object? */
+                    if (!mo->isStruct() && !mo->isHeap()) {
+                        consCG->setObjFieldInsensitive(ptd);
+                        consCG->addNodeToBeCollapsed(consCG->getBaseObjNode(ptd));
+                    }
                 }
             }
             else {
