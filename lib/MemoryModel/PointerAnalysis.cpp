@@ -55,7 +55,7 @@ static cl::opt<bool> PTSPrint("print-pts", cl::init(false),
 static cl::opt<bool> PTSAllPrint("print-all-pts", cl::init(false),
                                  cl::desc("Print all points-to set of both top-level and address-taken variables"));
 
-static cl::opt<bool> PStat("stat", cl::init(true),
+static cl::opt<bool> PStat("stat", cl::init(false),
                            cl::desc("Statistic for Pointer analysis"));
 
 static cl::opt<unsigned> statBudget("statlimit",  cl::init(20),
@@ -224,7 +224,7 @@ void PointerAnalysis::dumpStat() {
 void PointerAnalysis::finalize() {
 
     /// Print statistics
-    //dumpStat();
+    dumpStat();
 
     PAG* pag = PAG::getPAG();
     // dump the PAG graph
