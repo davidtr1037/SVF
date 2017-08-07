@@ -90,9 +90,9 @@ void Andersen::analyze(llvm::Module& module) {
         do {
             numOfIteration++;
 
-            if(0 == numOfIteration % OnTheFlyIterBudgetForStat) {
-                dumpStat();
-            }
+            // if(0 == numOfIteration % OnTheFlyIterBudgetForStat) {
+            //     dumpStat();
+            // }
 
             reanalyze = false;
 
@@ -125,9 +125,9 @@ void Andersen::analyze(llvm::Module& module) {
 void Andersen::processNode(NodeID nodeId) {
 
     numOfIteration++;
-    if (0 == numOfIteration % OnTheFlyIterBudgetForStat) {
-        dumpStat();
-    }
+    // if (0 == numOfIteration % OnTheFlyIterBudgetForStat) {
+    //     dumpStat();
+    // }
 
     ConstraintNode* node = consCG->getConstraintNode(nodeId);
 
