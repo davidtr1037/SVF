@@ -32,7 +32,6 @@
 #include "Util/AnalysisUtil.h"
 #include "Util/CPPUtil.h"
 #include "Util/BreakConstantExpr.h"
-#include "Util/GEPTypeBridgeIterator.h" // include bridge_gep_iterator 
 #include <llvm/Transforms/Utils/UnifyFunctionExitNodes.h>
 #include <llvm/Support/raw_ostream.h>	// for output
 #include <llvm/IR/ValueSymbolTable.h>	// for valueSymbolTable
@@ -190,14 +189,15 @@ void SymbolTableInfo::collectSimpleTypeInfo(const llvm::Type* ty)
  */
 bool SymbolTableInfo::computeGepOffset(const llvm::User *V, LocationSet& ls) {
     assert(V);
-    for (bridge_gep_iterator gi = bridge_gep_begin(*V), ge = bridge_gep_end(*V);
+    for (gep_type_iterator gi = gep_type_begin(*V), ge = gep_type_end(*V);
             gi != ge; ++gi) {
 
         // Handling array types, skipe array handling here
         // We treat whole array as one, then we can distinguish different field of an array of struct
         // e.g. s[1].f1 is differet from s[0].f2
-        if(isa<ArrayType>(*gi))
-	  continue;
+        if(isa<ArrayType>(gi.isBoundedSequential()))
+            continue;
+
 
         //The int-value object of the current index operand
         //  (may not be constant for arrays).
@@ -215,7 +215,7 @@ bool SymbolTableInfo::computeGepOffset(const llvm::User *V, LocationSet& ls) {
         // These GEP instructions are simply making address computations from the base pointer address
         // e.g. idx1 = (char*) &MyVar + 4,  at this case gep only one offset index (idx)
 
-        if (isa<PointerType>(*gi)) {
+        if (isa<PointerType>(gi.getIndexedType())) {
             // If this is a pointer, we're likely accessing an array through this pointer.
             // idx gives the array index of which element is being accessed. But since this
             // is a field-index based memory model, we consider array as containing one
@@ -227,7 +227,8 @@ bool SymbolTableInfo::computeGepOffset(const llvm::User *V, LocationSet& ls) {
 
 
         // Handling struct here
-        if (const StructType *ST = dyn_cast<StructType>(*gi) ) {
+
+        if (const StructType *ST = gi.getStructTypeOrNull()) {
             assert(op && "non-const struct index in GEP");
             const vector<u32_t> &so = SymbolTableInfo::Symbolnfo()->getStructOffsetVec(ST);
             if ((unsigned)idx >= so.size()) {
