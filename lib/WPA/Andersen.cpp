@@ -279,8 +279,7 @@ void Andersen::processGepPts(PointsTo& pts, const GepCGEdge* edge)
                 // XXX: HACK!! basically what I tried to enforce is field (in)sensitivity when needed
                 if (!consCG->isFieldInsensitiveObj(ptd)) {
                     const MemObj *mo = consCG->getMemObj(ptd);
-                    /* TODO: check if heap object? */
-                    if (!mo->isStruct()) {
+                    if (!mo->isStruct() && !mo->isHeap()) {
                         consCG->setObjFieldInsensitive(ptd);
                         consCG->addNodeToBeCollapsed(consCG->getBaseObjNode(ptd));
                     }
@@ -301,7 +300,6 @@ void Andersen::processGepPts(PointsTo& pts, const GepCGEdge* edge)
                 // XXX: HACK!! basically what I tried to enforce is field (in)sensitivity when needed
                 if (!consCG->isFieldInsensitiveObj(ptd)) {
                     const MemObj *mo = consCG->getMemObj(ptd);
-                    /* TODO: why do we check here if it is a heap object? */
                     if (!mo->isStruct() && !mo->isHeap()) {
                         consCG->setObjFieldInsensitive(ptd);
                         consCG->addNodeToBeCollapsed(consCG->getBaseObjNode(ptd));
