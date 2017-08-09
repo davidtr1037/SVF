@@ -59,7 +59,7 @@ public:
     }
 
     /// Get pass name
-    virtual llvm::StringRef getPassName() const {
+    virtual const char* getPassName() const {
         return "File Open/Close Analysis";
     }
 

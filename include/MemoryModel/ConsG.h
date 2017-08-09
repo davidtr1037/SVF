@@ -252,10 +252,24 @@ public:
     }
     inline void printNode(NodeID id) const {
         const MemObj *mem = pag->getBaseObj(id);
-        llvm::errs() << "is array? " << mem->isArray() << "-is heap? "
-            << mem->isHeap() << "-is struct? " << mem->isStruct()
-            << "-is field insensitive? " << mem->isFieldInsensitive()
-            << "\n";
+        llvm::errs()
+        << "\n*is Offset lim  "  << mem->getMaxFieldOffsetLimit()
+		<< "\n*is Tainted     "  << mem->isTaintedObj()
+        << "\n*is Function    "  << mem->isFunction()
+        << "\n*is GlobalObj   "  << mem->isGlobalObj()
+        << "\n*is StaticObj   "  << mem->isStaticObj()
+        << "\n*is Stack       "  << mem->isStack()
+        << "\n*is Heap        "  << mem->isHeap()
+        << "\n*is Struct      "  << mem->isStruct()
+        << "\n*is Array       "  << mem->isArray()
+        << "\n*is VarStruct   "  << mem->isVarStruct()
+        << "\n*is VarArray    "  << mem->isVarArray()
+        << "\n*is ConstStruct "  << mem->isConstStruct()
+        << "\n*is ConstArray  "  << mem->isConstArray()
+        << "\n*is Constant    "  << mem->isConstant()
+        << "\n*is Insensitive "  << mem->isFieldInsensitive()
+		<< "\n*is Has ptrObj  "  << mem->hasPtrObj()
+        << "\n";
         mem->getRefVal()->dump();
     }
     inline const MemObj *getMemObj(NodeID id) const {

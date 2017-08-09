@@ -36,7 +36,7 @@ private:
 public:
     static char ID;
     BreakConstantGEPs() : ModulePass(ID) {}
-    llvm::StringRef getPassName() const {
+    const char* getPassName() const {
         return "Remove Constant GEP Expressions";
     }
     virtual bool runOnModule (llvm::Module & M);
@@ -62,7 +62,7 @@ private:
 public:
     static char ID;
     MergeFunctionRets() : ModulePass(ID) {}
-    llvm::StringRef getPassName() const {
+    const char* getPassName() const {
         return "unify function exit into one dummy exit basic block";
     }
     virtual bool runOnModule (llvm::Module & M) {

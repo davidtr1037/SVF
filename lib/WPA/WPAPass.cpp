@@ -55,14 +55,16 @@ static cl::bits<PointerAnalysis::PTATY> PASelected(cl::desc("Select pointer anal
             clEnumValN(PointerAnalysis::AndersenLCD_WPA, "lander", "Lazy cycle detection inclusion-based analysis"),
             clEnumValN(PointerAnalysis::AndersenWave_WPA, "wander", "Wave propagation inclusion-based analysis"),
             clEnumValN(PointerAnalysis::AndersenWaveDiff_WPA, "ander", "Diff wave propagation inclusion-based analysis"),
-            clEnumValN(PointerAnalysis::FSSPARSE_WPA, "fspta", "Sparse flow sensitive pointer analysis")
+            clEnumValN(PointerAnalysis::FSSPARSE_WPA, "fspta", "Sparse flow sensitive pointer analysis"),
+			clEnumValEnd
             ));
 
 
 static cl::bits<WPAPass::AliasCheckRule> AliasRule(cl::desc("Select alias check rule"),
         cl::values(
             clEnumValN(WPAPass::Conservative, "conservative", "return MayAlias if any pta says alias"),
-            clEnumValN(WPAPass::Veto, "veto", "return NoAlias if any pta says no alias")
+            clEnumValN(WPAPass::Veto, "veto", "return NoAlias if any pta says no alias"),
+			clEnumValEnd
             ));
 
 cl::opt<bool> anderSVFG("svfg", cl::init(false),
@@ -141,7 +143,7 @@ void WPAPass::runPointerAnalysis(llvm::Module& module, u32_t kind)
  */
 llvm::AliasAnalysis::AliasResult WPAPass::alias(const Value* V1, const Value* V2) {
 
-    llvm::AliasAnalysis::AliasResult result = MayAlias;
+    llvm::AliasAnalysis::AliasResult result = llvm::AliasAnalysis::AliasResult::MayAlias;
 
     PAG* pag = _pta->getPAG();
 
@@ -154,22 +156,22 @@ llvm::AliasAnalysis::AliasResult WPAPass::alias(const Value* V1, const Value* V2
         /// Veto is used by default
         if (AliasRule.getBits() == 0 || AliasRule.isSet(Veto)) {
             /// Return NoAlias if any PTA gives NoAlias result
-            result = MayAlias;
+            result = llvm::AliasAnalysis::AliasResult::MayAlias;
 
             for (PTAVector::const_iterator it = ptaVector.begin(), eit = ptaVector.end();
                     it != eit; ++it) {
-                if ((*it)->alias(V1, V2) == NoAlias)
-                    result = NoAlias;
+                if ((*it)->alias(V1, V2) == llvm::AliasAnalysis::AliasResult::NoAlias)
+                    result = llvm::AliasAnalysis::AliasResult::NoAlias;
             }
         }
         else if (AliasRule.isSet(Conservative)) {
             /// Return MayAlias if any PTA gives MayAlias result
-            result = NoAlias;
+            result = llvm::AliasAnalysis::NoAlias;
 
             for (PTAVector::const_iterator it = ptaVector.begin(), eit = ptaVector.end();
                     it != eit; ++it) {
-                if ((*it)->alias(V1, V2) == MayAlias)
-                    result = MayAlias;
+                if ((*it)->alias(V1, V2) == llvm::AliasAnalysis::AliasResult::MayAlias)
+                    result = llvm::AliasAnalysis::AliasResult::MayAlias;
             }
         }
     }

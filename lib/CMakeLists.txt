@@ -51,15 +51,6 @@ set(SOURCES
 add_llvm_loadable_module(Svf ${SOURCES})
 add_llvm_Library(LLVMSvf ${SOURCES})
 
-link_directories( ${CMAKE_BINARY_DIR}/lib/Cudd )
-llvm_map_components_to_libnames(llvm_libs bitwriter core ipo irreader instcombine instrumentation target linker analysis scalaropts support )
-target_link_libraries(LLVMSvf ${llvm_libs})
-if ( CMAKE_SYSTEM_NAME MATCHES "Darwin")
-    target_link_libraries(Svf LLVMCudd ${llvm_libs})
-else()
-    target_link_libraries(Svf ${llvm_libs})
-endif()
-
 if(DEFINED IN_SOURCE_BUILD)
     add_dependencies(Svf intrinsics_gen)
     add_dependencies(LLVMSvf intrinsics_gen)

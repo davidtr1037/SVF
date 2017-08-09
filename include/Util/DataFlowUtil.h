@@ -174,11 +174,10 @@ public:
         llvm::Function* fun = const_cast<llvm::Function*>(f);
         FunToPostDTMap::iterator it = funToPDTMap.find(fun);
         if(it==funToPDTMap.end()) {
-            llvm::PostDominatorTreeWrapperPass* postDT = new llvm::PostDominatorTreeWrapperPass();
+            llvm::PostDominatorTree* postDT = new llvm::PostDominatorTree();
             postDT->runOnFunction(*fun);
-	    llvm::PostDominatorTree * PDT = &(postDT->getPostDomTree());
-            funToPDTMap[fun] = PDT;
-            return PDT;
+            funToPDTMap[fun] = postDT;
+            return postDT;
         }
         else
             return it->second;

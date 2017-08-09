@@ -280,7 +280,17 @@ void Andersen::processGepPts(PointsTo& pts, const GepCGEdge* edge)
                 if (!consCG->isFieldInsensitiveObj(ptd)) {
                     const MemObj *mo = consCG->getMemObj(ptd);
                     /* TODO: check if heap object? */
-                    if (!mo->isStruct()) {
+//                    if (mo->isHeap()) {
+//                    	consCG->printNode(ptd);
+//                    }
+//                    if (const CallInst *call = llvm::dyn_cast<CallInst>(mo->getRefVal())) {
+//                      if (call->getCalledValue()->getName() == "realloc") {
+//                          consCG->setObjFieldInsensitive(ptd);
+//                          consCG->addNodeToBeCollapsed(consCG->getBaseObjNode(ptd));
+//                          continue;
+//                      }
+//                    }
+                    if (!mo->isStruct() && !mo->isHeap()) {
                         consCG->setObjFieldInsensitive(ptd);
                         consCG->addNodeToBeCollapsed(consCG->getBaseObjNode(ptd));
                     }

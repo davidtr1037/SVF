@@ -39,7 +39,7 @@
 
 #include "MemoryModel/PointerAnalysis.h"
 #include <llvm/Analysis/AliasAnalysis.h>
-#include <llvm/Analysis/TargetLibraryInfo.h>
+#include <llvm/Target/TargetLibraryInfo.h>
 #include <llvm/Pass.h>
 
 
@@ -94,7 +94,7 @@ public:
     virtual bool runOnModule(llvm::Module& module);
 
     /// PTA name
-    virtual inline llvm::StringRef getPassName() const {
+    virtual inline const char* getPassName() const {
         return "WPAPass";
     }
 
