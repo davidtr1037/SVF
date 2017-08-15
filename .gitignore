@@ -8,7 +8,6 @@ Release/
 autoconf/
 tests/result/
 doxygen/
-.*
 !.gitignore
 *~
 *.o
