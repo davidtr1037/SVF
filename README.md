@@ -1,7 +1,7 @@
 # SVF
 * Forked from https://github.com/unsw-corg/SVF
 * Ported to work with LLVM 3.4
-* Additional changes for the KLEE/Slicing project
+* Additional changes for the KLEE/CSE project
 
 ## Build (CMake)
 ```
