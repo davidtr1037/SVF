@@ -5,8 +5,9 @@
 
 ## Build (CMake)
 ```
-git checkout llvm-3.4
+git checkout master
 mkdir build
+cd build
 cmake \
     -DLLVM_DIR=<LLVM_BUILD_DIR>/share/llvm/cmake/ \
     -DLLVM_SRC=<LLVM_SRC_DIR> \
