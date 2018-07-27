@@ -599,6 +599,7 @@ void SymbolTableInfo::prePassSchedule(llvm::Module& module)
     /// BreakConstantGEPs Pass
     BreakConstantGEPs* p1 = new BreakConstantGEPs();
     p1->runOnModule(module);
+    delete p1;
 
     /// MergeFunctionRets Pass
     UnifyFunctionExitNodes* p2 = new UnifyFunctionExitNodes();
@@ -608,6 +609,7 @@ void SymbolTableInfo::prePassSchedule(llvm::Module& module)
             continue;
         p2->runOnFunction(fun);
     }
+    delete p2;
 }
 
 /*!
