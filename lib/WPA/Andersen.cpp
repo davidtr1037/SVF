@@ -276,13 +276,9 @@ void Andersen::processGepPts(PointsTo& pts, const GepCGEdge* edge)
             /// If a pointer connected by a variant gep edge,
             /// then set this memory object to be field insensitive
             if (isa<VariantGepCGEdge>(edge)) {
-                // XXX: HACK!! basically what I tried to enforce is field (in)sensitivity when needed
-                if (!consCG->isFieldInsensitiveObj(ptd)) {
-                    const MemObj *mo = consCG->getMemObj(ptd);
-                    if (!mo->isStruct() && !mo->isHeap()) {
-                        consCG->setObjFieldInsensitive(ptd);
-                        consCG->addNodeToBeCollapsed(consCG->getBaseObjNode(ptd));
-                    }
+                if (consCG->isFieldInsensitiveObj(ptd) == false) {
+                    consCG->setObjFieldInsensitive(ptd);
+                    consCG->addNodeToBeCollapsed(consCG->getBaseObjNode(ptd));
                 }
                 // add the field-insensitive node into pts.
                 NodeID baseId = consCG->getFIObjNode(ptd);
@@ -297,14 +293,6 @@ void Andersen::processGepPts(PointsTo& pts, const GepCGEdge* edge)
                 NodeID fieldSrcPtdNode = consCG->getGepObjNode(ptd,	normalGepEdge->getLocationSet());
                 tmpDstPts.set(fieldSrcPtdNode);
                 addTypeForGepObjNode(fieldSrcPtdNode, normalGepEdge);
-                // XXX: HACK!! basically what I tried to enforce is field (in)sensitivity when needed
-                if (!consCG->isFieldInsensitiveObj(ptd)) {
-                    const MemObj *mo = consCG->getMemObj(ptd);
-                    if (!mo->isStruct() && !mo->isHeap()) {
-                        consCG->setObjFieldInsensitive(ptd);
-                        consCG->addNodeToBeCollapsed(consCG->getBaseObjNode(ptd));
-                    }
-                }
             }
             else {
                 assert(false && "new gep edge?");
