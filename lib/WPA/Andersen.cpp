@@ -500,6 +500,8 @@ void Andersen::mergeNodeToRep(NodeID nodeId,NodeID newRepId) {
     consCG->setRep(node->getId(),newRepId);
     NodeBS& newSubs = consCG->sccSubNodes(newRepId);
     newSubs.set(node->getId());
+
+    delete node;
 }
 
 /*
